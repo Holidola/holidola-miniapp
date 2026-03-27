@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Holidola Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        /* Хедер с балансом */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            border-radius: 15px;
+            padding: 8px 20px;
+            text-align: center;
+        }
+
+        .balance-label {
+            font-size: 12px;
+            color: #333;
+        }
+
+        .balance-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .stats-mini {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #888;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* Переключатель игр */
+        .game-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .game-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .game-btn.active {
+            background: linear-gradient(135deg, #ff4d4d, #ff6b6b);
+            box-shadow: 0 0 15px rgba(255, 77, 77, 0.5);
+        }
+
+        /* Игровая зона */
+        .game-area {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 380px;
+        }
+
+        /* Ракетка — сетка 3x3 */
+        .grid-3x3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            cursor: pointer;
+            transition: 0.1s;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .cell.revealed {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            box-shadow: 0 0 15px #ffd700;
+        }
+
+        .cell.mine {
+            background: #4a0000;
+            color: #ff4444;
+        }
+
+        /* Самолётик — canvas */
+        .plane-canvas {
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .multiplier {
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 16px;
+        }
+
+        .bet-control {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .bet-control input {
+            width: 100px;
+            padding: 12px;
+            border: none;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+        }
+
+        .btn-fly {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            color: white;
+        }
+
+        .btn-cashout {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 16px;
+        }
+
+        /* История */
+        .history-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 16px;
+        }
+
+        .history-section h3 {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 12px;
+        }
+
+        .history-list {
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 12px;
+        }
+
+        .win { color: #4caf50; }
+        .loss { color: #ff4444; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="stats-mini">
+        <div class="stat-item">
+            <div class="stat-label">ИГР</div>
+            <div class="stat-value" id="games-played">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">ПОБЕД</div>
+            <div class="stat-value" id="games-won">0</div>
+        </div>
+    </div>
+    <div class="balance-card">
+        <div class="balance-label">⭐ БАЛАНС</div>
+        <div class="balance-value" id="balance">100</div>
+    </div>
+</div>
+
+<div class="game-selector">
+    <button class="game-btn active" data-game="rocket">🚀 РАКЕТКА</button>
+    <button class="game-btn" data-game="plane">✈️ САМОЛЁТИК</button>
+</div>
+
+<div class="game-area">
+    <!-- Ракетка -->
+    <div id="rocket-game">
+        <div class="grid-3x3" id="rocket-grid"></div>
+        <div class="multiplier">Множитель: <span id="rocket-multiplier">x1.00</span></div>
+        <div class="bet-control">
+            <input type="number" id="rocket-bet" value="10" min="1" step="1">
+            <button class="btn-start" id="rocket-start">СТАВИТЬ</button>
+        </div>
+        <div id="rocket-actions" class="game-actions hidden">
+            <button class="btn-cashout" id="rocket-cashout">💰 ЗАБРАТЬ</button>
+        </div>
+    </div>
+
+    <!-- Самолётик -->
+    <div id="plane-game" class="hidden">
+        <canvas id="plane-canvas" width="300" height="200" class="plane-canvas"></canvas>
+        <div class="multiplier">Множитель: <span id="plane-multiplier">x1.00</span></div>
+        <div class="bet-control">
+            <input type="number" id="plane-bet" value="10" min="1" step="1">
+            <button class="btn-start" id="plane-start">СТАВИТЬ</button>
+        </div>
+        <div id="plane-actions" class="game-actions hidden">
+            <button class="btn-fly" id="plane-fly">✈️ ЛЕТЕТЬ</button>
+            <button class="btn-cashout" id="plane-cashout">💰 ЗАБРАТЬ</button>
+        </div>
+    </div>
+</div>
+
+<div class="history-section">
+    <h3>📜 ИСТОРИЯ ИГР</h3>
+    <div id="history-list" class="history-list">
+        <div class="history-empty">Нет игр</div>
+    </div>
+</div>
+
+<script>
+    // ========== ДАННЫЕ ==========
+    let balance = 100;
+    let gamesPlayed = 0;
+    let gamesWon = 0;
+    let history = [];
+
+    // Игровые состояния
+    let rocketGame = { active: false, bet: 0, multiplier: 1.0, mines: [], revealed: [] };
+    let planeGame = { active: false, bet: 0, multiplier: 1.0, flying: false, interval: null };
+
+    // DOM элементы
+    const balanceEl = document.getElementById('balance');
+    const gamesPlayedEl = document.getElementById('games-played');
+    const gamesWonEl = document.getElementById('games-won');
+    const historyListEl = document.getElementById('history-list');
+
+    // ========== ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ==========
+    function updateUI() {
+        balanceEl.innerText = balance;
+        gamesPlayedEl.innerText = gamesPlayed;
+        gamesWonEl.innerText = gamesWon;
+        renderHistory();
+    }
+
+    function renderHistory() {
+        if (history.length === 0) {
+            historyListEl.innerHTML = '<div class="history-empty">Нет игр</div>';
+            return;
+        }
+        historyListEl.innerHTML = history.map(h => `
+            <div class="history-item ${h.type}">
+                <span>${h.game} ${h.type === 'win' ? '🏆' : '💀'}</span>
+                <span>${h.type === 'win' ? '+' : '-'}${h.amount}⭐ x${h.multiplier}</span>
+                <span>${h.time}</span>
+            </div>
+        `).join('');
+    }
+
+    function addHistory(type, game, amount, multiplier) {
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        history.unshift({ type, game, amount, multiplier, time: timeStr });
+        if (history.length > 20) history.pop();
+        renderHistory();
+    }
+
+    // ========== РАКЕТКА ==========
+    function initRocketGrid() {
+        const grid = document.getElementById('rocket-grid');
+        grid.innerHTML = '';
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.index = i;
+            cell.innerText = '❓';
+            cell.onclick = () => rocketReveal(i);
+            grid.appendChild(cell);
+        }
+    }
+
+    function updateRocketGrid() {
+        const cells = document.querySelectorAll('#rocket-grid .cell');
+        cells.forEach((cell, idx) => {
+            if (rocketGame.mines.includes(idx) && !rocketGame.active) {
+                cell.className = 'cell mine';
+                cell.innerText = '💣';
+            } else if (rocketGame.revealed.includes(idx)) {
+                cell.className = 'cell revealed';
+                cell.innerText = '⭐';
+            } else {
+                cell.className = 'cell';
+                cell.innerText = '❓';
+            }
+        });
+        document.getElementById('rocket-multiplier').innerText = `x${rocketGame.multiplier.toFixed(2)}`;
+    }
+
+    function startRocket() {
+        const bet = parseInt(document.getElementById('rocket-bet').value);
+        if (bet <= 0 || bet > balance) {
+            alert(`Недостаточно звезд! Баланс: ${balance}⭐`);
+            return;
+        }
+
+        balance -= bet;
+        gamesPlayed++;
+        updateUI();
+
+        // Генерируем 3 бомбы
+        const mines = [];
+        while (mines.length < 3) {
+            const r = Math.floor(Math.random() * 9);
+            if (!mines.includes(r)) mines.push(r);
+        }
+
+        rocketGame = {
+            active: true,
+            bet: bet,
+            multiplier: 1.0,
+            mines: mines,
+            revealed: []
+        };
+
+        updateRocketGrid();
+        document.getElementById('rocket-actions').classList.remove('hidden');
+        document.getElementById('rocket-start').disabled = true;
+    }
+
+    function rocketReveal(index) {
+        if (!rocketGame.active) return;
+        if (rocketGame.revealed.includes(index)) return;
+
+        // Попал на бомбу?
+        if (rocketGame.mines.includes(index)) {
+            // ПРОИГРЫШ
+            rocketGame.active = false;
+            addHistory('loss', 'Ракетка', rocketGame.bet, rocketGame.multiplier);
+            updateRocketGrid();
+            document.getElementById('rocket-actions').classList.add('hidden');
+            document.getElementById('rocket-start').disabled = false;
+            updateUI();
+            return;
+        }
+
+        // Открываем клетку
+        rocketGame.revealed.push(index);
+        
+        // Множитель: +0.4 за каждую звезду
+        rocketGame.multiplier = 1.0 + (rocketGame.revealed.length * 0.4);
+        updateRocketGrid();
+
+        // Проверка победы (все безопасные клетки открыты)
+        const safeCells = [0,1,2,3,4,5,6,7,8].filter(i => !rocketGame.mines.includes(i));
+        if (rocketGame.revealed.length === safeCells.length) {
+            const win = Math.floor(rocketGame.bet * rocketGame.multiplier);
+            balance += win;
+            gamesWon++;
+            addHistory('win', 'Ракетка', win, rocketGame.multiplier);
+            rocketGame.active = false;
+            updateUI();
+            updateRocketGrid();
+            document.getElementById('rocket-actions').classList.add('hidden');
+            document.getElementById('rocket-start').disabled = false;
+        }
+    }
+
+    function rocketCashout() {
+        if (!rocketGame.active) return;
+        const win = Math.floor(rocketGame.bet * rocketGame.multiplier);
+        balance += win;
+        gamesWon++;
+        addHistory('win', 'Ракетка', win, rocketGame.multiplier);
+        rocketGame.active = false;
+        updateUI();
+        updateRocketGrid();
+        document.getElementById('rocket-actions').classList.add('hidden');
+        document.getElementById('rocket-start').disabled = false;
+    }
+
+    // ========== САМОЛЁТИК ==========
+    let planeCanvas, planeCtx;
+    let planeAnimationId = null;
+
+    function initPlaneCanvas() {
+        planeCanvas = document.getElementById('plane-canvas');
+        planeCtx = planeCanvas.getContext('2d');
+        planeCanvas.width = planeCanvas.clientWidth;
+        planeCanvas.height = planeCanvas.clientHeight;
+        drawPlane(1.0);
+    }
+
+    function drawPlane(multiplier) {
+        const w = planeCanvas.width;
+        const h = planeCanvas.height;
+        planeCtx.fillStyle = '#00000033';
+        planeCtx.fillRect(0, 0, w, h);
+        
+        // Рисуем линию полёта
+        const progress = Math.min(multiplier / 5, 0.95);
+        const x = progress * w;
+        
+        planeCtx.beginPath();
+        planeCtx.moveTo(0, h - 30);
+        planeCtx.lineTo(x, h - 30 - (progress * 80));
+        planeCtx.strokeStyle = '#ffd700';
+        planeCtx.lineWidth = 3;
+        planeCtx.stroke();
+        
+        // Самолётик
+        planeCtx.fillStyle = '#ff4d4d';
+        planeCtx.beginPath();
+        planeCtx.moveTo(x, h - 30 - (progress * 80));
+        planeCtx.lineTo(x - 10, h - 25 - (progress * 80));
+        planeCtx.lineTo(x + 15, h - 30 - (progress * 80));
+        planeCtx.lineTo(x - 10, h - 35 - (progress * 80));
+        planeCtx.fill();
+        
+        // След
+        planeCtx.fillStyle = '#ffd700';
+        planeCtx.beginPath();
+        planeCtx.arc(x - 20, h - 30 - (progress * 80), 4, 0, Math.PI * 2);
+        planeCtx.fill();
+    }
+
+    function startPlane() {
+        const bet = parseInt(document.getElementById('plane-bet').value);
+        if (bet <= 0 || bet > balance) {
+            alert(`Недостаточно звезд! Баланс: ${balance}⭐`);
+            return;
+        }
+        
+        balance -= bet;
+        gamesPlayed++;
+        updateUI();
+        
+        planeGame = {
+            active: true,
+            bet: bet,
+            multiplier: 1.0,
+            flying: true
+        };
+        
+        document.getElementById('plane-actions').classList.remove('hidden');
+        document.getElementById('plane-start').disabled = true;
+        
+        // Автополёт
+        if (planeAnimationId) clearInterval(planeAnimationId);
+        planeAnimationId = setInterval(() => {
+            if (!planeGame.active || !planeGame.flying) return;
+            
+            // Рост множителя
+            planeGame.multiplier += 0.05 + Math.random() * 0.1;
+            document.getElementById('plane-multiplier').innerText = `x${planeGame.multiplier.toFixed(2)}`;
+            drawPlane(planeGame.multiplier);
+            
+            // Риск краша
+            const crashChance = 0.02 + (planeGame.multiplier - 1) * 0.02;
+            if (Math.random() < crashChance && planeGame.multiplier > 1.2) {
+                // КРАШ
+                clearInterval(planeAnimationId);
+                planeGame.active = false;
+                planeGame.flying = false;
+                addHistory('loss', 'Самолётик', planeGame.bet, planeGame.multiplier);
+                drawCrash();
+                document.getElementById('plane-actions').classList.add('hidden');
+                document.getElementById('plane-start').disabled = false;
+                updateUI();
+            }
+        }, 400);
+    }
+    
+    function drawCrash() {
+        const w = planeCanvas.width;
+        const h = planeCanvas.height;
+        planeCtx.fillStyle = '#ff000088';
+        planeCtx.fillRect(0, 0, w, h);
+        planeCtx.fillStyle = '#fff';
+        planeCtx.font = 'bold 20px sans-serif';
+        planeCtx.fillText('💥 КРАШ 💥', w/2-60, h/2);
+    }
+    
+    function planeCashout() {
+        if (!planeGame.active || !planeGame.flying) return;
+        clearInterval(planeAnimationId);
+        const win = Math.floor(planeGame.bet * planeGame.multiplier);
+        balance += win;
+        gamesWon++;
+        addHistory('win', 'Самолётик', win, planeGame.multiplier);
+        planeGame.active = false;
+        planeGame.flying = false;
+        updateUI();
+        document.getElementById('plane-actions').classList.add('hidden');
+        document.getElementById('plane-start').disabled = false;
+        
+        // Показываем победу на canvas
+        const w = planeCanvas.width;
+        const h = planeCanvas.height;
+        planeCtx.fillStyle = '#4caf5088';
+        planeCtx.fillRect(0, 0, w, h);
+        planeCtx.fillStyle = '#fff';
+        planeCtx.font = 'bold 20px sans-serif';
+        planeCtx.fillText(`🎉 +${win}⭐ 🎉`, w/2-70, h/2);
+    }
+
+    // ========== ПЕРЕКЛЮЧЕНИЕ ИГР ==========
+    function switchGame(game) {
+        const rocketDiv = document.getElementById('rocket-game');
+        const planeDiv = document.getElementById('plane-game');
+        const btns = document.querySelectorAll('.game-btn');
+        
+        btns.forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.game-btn[data-game="${game}"]`).classList.add('active');
+        
+        if (game === 'rocket') {
+            rocketDiv.classList.remove('hidden');
+            planeDiv.classList.add('hidden');
+        } else {
+            rocketDiv.classList.add('hidden');
+            planeDiv.classList.remove('hidden');
+            initPlaneCanvas();
+        }
+    }
+
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    function init() {
+        initRocketGrid();
+        initPlaneCanvas();
+        
+        document.getElementById('rocket-start').onclick = startRocket;
+        document.getElementById('rocket-cashout').onclick = rocketCashout;
+        document.getElementById('plane-start').onclick = startPlane;
+        document.getElementById('plane-cashout').onclick = planeCashout;
+        document.getElementById('plane-fly').onclick = () => {
+            if (planeGame.active && planeGame.flying) {
+                // Мануальное ускорение
+                planeGame.multiplier += 0.2;
+                document.getElementById('plane-multiplier').innerText = `x${planeGame.multiplier.toFixed(2)}`;
+                drawPlane(planeGame.multiplier);
+            }
+        };
+        
+        document.querySelectorAll('.game-btn').forEach(btn => {
+            btn.onclick = () => switchGame(btn.dataset.game);
+        });
+        
+        updateUI();
+    }
+    
+    init();
+</script>
+</body>
+</html>
